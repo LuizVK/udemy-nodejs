@@ -23,6 +23,7 @@ app.get('/', (req, res) => {
 
 conn
     .sync()
+    // .sync({ force: true}) /* force = true faz com que todas as tabelas sejam dropadas e criadas novamente */
     .then(() => {
         app.listen(port, () => {
             console.log(`App rodando na porta ${port}`)
