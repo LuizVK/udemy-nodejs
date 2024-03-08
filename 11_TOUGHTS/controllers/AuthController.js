@@ -8,30 +8,26 @@ export default class AuthController {
 
     static async loginPost(req, res) {
         const { email, password } = req.body
-
+        
         // finder user
-        const user = await User.findOne({ where: { email: email }})
+        const user = await User.findOne({ where: { email: email } })
 
-        if (!user){
+        if (!user) {
             req.flash('message', 'Usuário não encontrado!')
-            res.render('auth/login')
-
-            return
+            return res.render('auth/login')
         }
 
         // check if passwords match
         const passwordMatch = bcrypt.compareSync(password, user.password)
 
-        if(!passwordMatch) {
+        if (!passwordMatch) {
             req.flash('message', 'Senha inválida!')
-            res.render('auth/login')
-
-            return
+            return res.render('auth/login')
         }
 
         //initialize session
         req.session.userid = user.id
-            
+
         req.flash('message', 'Autenticação realizada com sucesso!')
 
         req.session.save(() => {
@@ -46,22 +42,30 @@ export default class AuthController {
     static async registerPost(req, res) {
         const { name, email, password, confirmpassword } = req.body
 
+        // name was not filled
+        if (!name || name.trim() === '') {
+            req.flash('message', 'O nome deve ser preenchido!')
+            return res.render('auth/register')
+        }
+
+        // email was not filled
+        if (!email || email.trim() === '') {
+            req.flash('message', 'O e-mail deve ser preenchido!')
+            return res.render('auth/register')
+        }
+
         // password match validation
         if (password != confirmpassword) {
             req.flash('message', 'As senhas não conferem, tente novamente!')
-            res.render('auth/register')
-
-            return
+            return res.render('auth/register')
         }
 
         // check if user exists
-        const checkIfUserExists = await User.findOne({ where: { email: email }})
+        const checkIfUserExists = await User.findOne({ where: { email: email } })
 
         if (checkIfUserExists) {
             req.flash('message', 'O e-mail já está em uso!')
-            res.render('auth/register')
-
-            return
+            return res.render('auth/register')
         }
 
         // create a password
@@ -69,7 +73,7 @@ export default class AuthController {
         const hashedPassword = bcrypt.hashSync(password, salt)
 
         const user = {
-            name, 
+            name,
             email,
             password: hashedPassword
         }
@@ -78,7 +82,7 @@ export default class AuthController {
             const createdUser = await User.create(user)
 
             req.session.userid = createdUser.id
-            
+
             req.flash('message', 'Cadastro relizado com sucesso!')
 
             req.session.save(() => {
